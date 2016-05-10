@@ -17,9 +17,10 @@ def reservar_tramo(tramo, tren , prioridadAbsoluta= False):
 def liberar_tramo(tramo):
     conex = redis.Redis(host='localHost', db=0)
     tren = conex.execute_command('LPOP', tramo + "list")
-    insertar_tramo(tramo,tren)
+    if tren is not None:
+        insertar_tramo(tramo,tren)
 
-def insertar_region(region,tren):
+def insertar_tren_region(region,tren):
     conex = redis.Redis(host='localHost', db=0)
     conex.execute_command('SADD', region, tren)
 
@@ -27,10 +28,12 @@ def salir_region(region,tren):
     conex = redis.Redis(host='localHost', db=0)
     conex.execute_command('SPOP', region, tren)
 
-def obterner_trenes_regiones(region, *regiones):
-    conex = redis.Redis(host='localHost', db=1)
+def obtener_trenes_regiones(region, *regiones):
+    conex = redis.Redis(host='localHost', db=0)
     return conex.execute_command('SUNION', region, *regiones)
 
+
+'''
 def anadir_incidencia_climatologica(incidencia, tiempo ,tramo,*tramos):
     conex = redis.Redis(host='localHost', db=0)
     #metodo anadir mutliple
@@ -42,11 +45,12 @@ def anadir_incidencia_climatologica(incidencia, tiempo ,tramo,*tramos):
         conex.set("Incidencia->" + t, incidencia)
         conex.execute_command('EXPIRE', "Incidencia->" + t, tiempo)
 
+
 #por python
 def mostrar_incidencias(tramo, *tramos):
     conex = redis.Redis(host='localHost', db=0)
 
-
+'''
 
 
 if __name__ == "__main__":
@@ -68,5 +72,11 @@ if __name__ == "__main__":
 
     comprobar_trenes('MAD')
     '''
+    insertar_tren_region("Madird", "tren1")
+    insertar_tren_region("Madird", "tren3")
+    insertar_tren_region("Madird", "tren2")
 
-    print obterner_trenes_regiones('cipote', 'cipotes')
+
+    print obtener_trenes_regiones("Madird")
+    conex = redis.Redis(host='localHost', db=0)
+    print conex.execute_command('LPOP', "tramillo" + "list")
