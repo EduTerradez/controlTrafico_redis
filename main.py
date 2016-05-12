@@ -20,6 +20,13 @@ def liberar_tramo(tramo):
     if tren is not None:
         insertar_tramo(tramo,tren)
 
+def obtener_5primeros(tramo):
+    conex = redis.Redis(host='localHost', db=0)
+    lista = tramo + "list"
+
+    resultado = conex.execute_command('lrange', lista, 0 ,4)
+    return resultado
+
 def insertar_tren_region(region,tren):
     conex = redis.Redis(host='localHost', db=0)
     conex.execute_command('SADD', region, tren)
@@ -33,29 +40,50 @@ def obtener_trenes_regiones(region, *regiones):
     return conex.execute_command('SUNION', region, *regiones)
 
 
-'''
 def anadir_incidencia_climatologica(incidencia, tiempo ,tramo,*tramos):
     conex = redis.Redis(host='localHost', db=0)
+
     #metodo anadir mutliple
     #conex.set("Incidencia->" + tramo, incidencia)
-    
+
+    resultado = {}
+    for t in tramos:
+        res = "Incidencia" + t
+        resultado[res] = incidencia
+    print resultado
+    conex.mset(resultado)
+
+
+def obtener_incidencias(tramo, tramos*):
+
+
+    '''
     conex.execute_command('MSET', "Incidencia->" + tramo, "Incidencia->" + *tramos, incidencia)
+
+
+
+    conex.set("Incidencia->" + tramo, incidencia)
+    conex.execute_command('EXPIRE', "Incidencia->" + tramo, tiempo)
 
     for t in tramos:
         conex.set("Incidencia->" + t, incidencia)
         conex.execute_command('EXPIRE', "Incidencia->" + t, tiempo)
+
+'''
 
 
 #por python
 def mostrar_incidencias(tramo, *tramos):
     conex = redis.Redis(host='localHost', db=0)
 
-'''
+
+
 
 
 if __name__ == "__main__":
 
-    '''pool = redis.ConnectionPool(host='localhost', port=6379, db=0)
+    '''
+    pool = redis.ConnectionPool(host='localhost', port=6379, db=0)
     r = redis.Redis(connection_pool=pool)
 
     r.set('lulita', 'cipoton')
@@ -71,12 +99,15 @@ if __name__ == "__main__":
     anadir_incidencia_climatologica('MAD<>Car-tramo1', 'viento', 10)
 
     comprobar_trenes('MAD')
+
     '''
+    reservar_tramo("MAD" , "trenesito1" , False)
+    reservar_tramo("MAD", "trenesito2", False)
+    reservar_tramo("MAD", "trenesito3", False)
     insertar_tren_region("Madird", "tren1")
     insertar_tren_region("Madird", "tren3")
     insertar_tren_region("Madird", "tren2")
 
+    anadir_incidencia_climatologica("lluvia", 10, "MAD" , "BARCELONA" , "PARIS" , "ALBACETE")
 
-    print obtener_trenes_regiones("Madird")
-    conex = redis.Redis(host='localHost', db=0)
-    print conex.execute_command('LPOP', "tramillo" + "list")
+    #print obtener_5primeros("MAD")
